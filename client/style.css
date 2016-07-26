@@ -25,7 +25,7 @@ body {
     color: #aaa;
 }
 
-#copyrightNotice, #playerHeadline, #playerList, h1, h2 {
+#copyrightNotice, #playerHeadline, #playerList, h1, h2, ol {
     font-family: 'Montserrat', sans-serif;
 }
 

@@ -91,6 +91,10 @@ shell.registerCommand({
         teamB: {
             help: "A list separated by & of the players on team B",
             required: true
+        },
+        lang: {
+            help: "The language to play in",
+            required: true
         }
     },
     handler: function(cmd, opt) {
