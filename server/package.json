@@ -1,0 +1,19 @@
+{
+  "name": "vortumigu-server",
+  "version": "0.0.0",
+  "description": "The server for Vortumigu",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Mia Nordentoft",
+  "license": "GPLv3",
+  "dependencies": {
+    "ws": "~1.1.1",
+    "simple-shell": "~0.1.0",
+    "ascii-table": "0.0.9",
+    "moment": "~2.14.1",
+    "geoip-lite": "~1.1.8"
+  }
+}
