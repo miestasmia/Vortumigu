@@ -21,11 +21,17 @@ const WebSocketServer = require('ws').Server,
       shell           = require('simple-shell'),
       AsciiTable      = require('ascii-table'),
       moment          = require('moment'),
-      geoip           = require('geoip-lite');
+      geoip           = require('geoip-lite'),
+      fs              = require('fs'),
+      path            = require('path');
 
 
 
 const WEBSOCKET_PORT = 3000;
+
+
+
+const languages = fs.readdirSync(path.join(__dirname, 'words'));
 
 
 
@@ -35,6 +41,31 @@ shell.initialize({
     prompt: "vortumigu> "
 });
 
+shell.registerCommand({
+    name: "warranty",
+    help: "Displays warranty information",
+    handler: function() {
+        console.log("Vortumigu Server\n" +
+                    "Copyright (C) 2016 Mia Nordentoft\n\n" +
+
+                    "    This program is free software; you can redistribute it and/or modify \n" +
+                    "    it under the terms of the GNU General Public License as published by\n" +
+                    "    the Free Software Foundation; either version 3 of the License , or\n" +
+                    "    (at your option) any later version.\n\n" +
+
+                    "    This program is distributed in the hope that it will be useful,\n" +
+                    "    but WITHOUT ANY WARRANTY; without even the implied warranty of\n" +
+                    "    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n" +
+                    "    GNU General Public License for more details.\n\n" +
+
+                    "    You should have received a copy of the GNU General Public License\n" +
+                    "    along with this program. If not, write to\n\n" +
+
+                    "       The Free Software Foundation, Inc.\n" +
+                    "       51 Franklin Street, Fifth Floor\n" +
+                    "       Boston, MA 02110-1301  USA");
+    }
+});
 shell.registerCommand({
     name: "kick",
     help: "Kicks a player",
@@ -83,6 +114,9 @@ shell.registerCommand({
 shell.registerCommand({
     name: "start",
     help: "Starts the game",
+    isAvailable: function() {
+        return gameStatus === GameStatus.WAITING;
+    },
     options: {
         teamA: {
             help: "A list separated by & of the players on team A",
@@ -94,6 +128,14 @@ shell.registerCommand({
         },
         lang: {
             help: "The language to play in",
+            required: true
+        },
+        time: {
+            help: "The amount of seconds each team is awarded per turn",
+            defaultValue: 60
+        },
+        admin: {
+            help: "The username of the game admin",
             required: true
         }
     },
@@ -138,6 +180,27 @@ shell.registerCommand({
         }
         if (teamB.length < 2) {
             console.log("Team B is too small");
+            return;
+        }
+
+        opt.lang += ".csv";
+        if (languages.indexOf(opt.lang) === -1) {
+            console.log("That language does not exist");
+            return;
+        }
+
+        if (typeof opt.time !== "number" || opt.time < 1 || opt.time > 3600 || opt.time !== Math.ceil(opt.time)) {
+            console.log("Time must be an integer in the range ]0; 3600]");
+            return;
+        }
+
+        if (!(opt.admin in clients)) {
+            console.log("Admin is not a user");
+            return;
+        }
+
+        if (teamA.indexOf(opt.admin) > -1 || teamB.indexOf(opt.admin) > -1) {
+            console.log("The admin cannot be on a team");
             return;
         }
     }
@@ -185,6 +248,17 @@ var clients = {};
 var GameStatus = {
     WAITING: 0
 };
+var PlayerType = {
+    TEAM_A: 0,
+    TEAM_B: 1,
+    ADMIN: 2,
+    SPECTATOR: 3
+};
+var PlayerStatus = {
+    GUESSER: 0,
+    EXPLAINER: 1,
+    SPECTATOR: 2
+};
 var gameStatus = GameStatus.WAITING;
 
 var wss = new WebSocketServer({ port: WEBSOCKET_PORT });
@@ -223,6 +297,8 @@ wss.on('connection', function(ws) {
                 id: id,
                 time: moment().unix() * 1000,
                 whois: geoip.lookup(getIp(ws)),
+                type: null,
+                status: null,
                 kick: function() {
                     ws.send('kicked');
                     ws.close();
@@ -248,6 +324,8 @@ wss.on('connection', function(ws) {
         shellLog(username + " left the game");
     });
 });
-console.log('Starting Vortumigu Server on port ' + WEBSOCKET_PORT);
+console.log("Starting Vortumigu Server on port " + WEBSOCKET_PORT + "\n\n" +
+            "This is free software with ABSOLUTELY NO WARRANTY.\n" +
+            "For details type `warranty'.");
 
 shell.startConsole();
