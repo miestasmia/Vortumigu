@@ -136,6 +136,11 @@ var connectSocket = function() {
                 location.reload();
 
                 break;
+            case 'usernameUsed':
+                alert("That username is already in use.");
+                location.reload();
+
+                break;
             case 'gameStart':
                 if (data.length !== 5)
                     return;

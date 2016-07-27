@@ -326,7 +326,7 @@ var PlayerStatus = {
 };
 var gameStatus = GameStatus.WAITING;
 var cards = [];
-var currentCard = 0;
+var currentCard = -1;
 var teamA = null;
 var teamB = null;
 var admin = null;
@@ -354,7 +354,7 @@ wss.on('connection', function(ws) {
         ws.send('playerJoined\n' + otherUser);
 
     ws.on('message', function(msg) {
-        var data = msg.split('\n', 2)
+        var data = msg.split('\n', 2);
 
         if (!signedIn && data[0] === 'setUsername') {
             if (gameStatus !== GameStatus.WAITING) {
@@ -396,6 +396,7 @@ wss.on('connection', function(ws) {
         else if (signedIn) {
             switch(data[0]) {
                 case 'commenceRound':
+                    console.log(username, admin); // WHY THE FUCK IS USERNAME UNDEFINED
                     if (username !== admin)
                         return;
 
@@ -434,6 +435,13 @@ wss.on('connection', function(ws) {
                         gameStatus = GameStatus.TEAM_A;
                     else
                         gameStatus = GameStatus.TEAM_B;
+
+                    currentCard++; // TODO: Handle running out of cards
+                    for (var otherUser in clients) {
+                        var user = clients[otherUser];
+                        if (user.status !== PlayerStatus.GUESSER)
+                            user.ws.send('card ' + JSON.stringify(cards[currentCard]));
+                    }
             }
         }
     });
