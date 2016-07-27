@@ -21,7 +21,9 @@ var $ = function() {
 NodeList.prototype.forEach = Array.prototype.forEach;
 
 var els = {
-    playerList: $('#playerList')[0]
+    playerList: $('#playerList')[0],
+    game: $('#game')[0],
+    gameWindows: $('#game>*')
 };
 
 if (location.protocol === 'https:')
@@ -49,12 +51,17 @@ var connectSocket = function() {
     console.log('Connected.');
 
     var players = [];
+    var teamA = null;
+    var teamB = null;
+    var admin = null;
+    var spectators = null;
+    var selectedUsername = null;
 
     socket.onmessage = function(e) {
         var msg = e.data;
         console.log('Message from socket: ' + msg);
 
-        var data = msg.split('\n', 2)
+        var data = msg.split('\n');
 
         switch(data[0]) {
             case 'playerJoined':
@@ -87,9 +94,102 @@ var connectSocket = function() {
             case 'kicked':
                 alert("You've been kicked from the game.");
                 location.reload();
+
+                break;
             case 'alreadyStarted':
                 alert("The game has already started.");
                 location.reload();
+
+                break;
+            case 'status':
+                if (data.length !== 2)
+                    return;
+
+                els.game.childNodes.forEach(function(el) {
+                    if ((data[1] === 'controller' && el.id === 'gameController') ||
+                        (data[1] === 'explainer'  && el.id === 'gameExplainer')  ||
+                        (data[1] === 'admin'      && el.id === 'gameAdmin')      ||
+                        (data[1] === 'spectator'  && el.id === 'gameSpectator')  ||
+                        (data[1] === 'guesser'    && el.id === 'gameGuesser'))
+                        el.style.display = 'block';
+                    else
+                        el.style.display = 'auto';
+                });
+
+                break;
+            case 'gameStart':
+                if (data.length !== 5)
+                    return;
+
+                teamA = JSON.parse(data[1]);
+                teamB = JSON.parse(data[2]);
+                admin = data[3];
+                spectators = JSON.parse(data[4]);
+
+                els.playerList.innerHTML = '';
+
+                var li = document.createElement('li');
+                li.className = "playerListTeamA";
+                els.playerList.appendChild(li);
+                var ul = document.createElement('ul');
+                var span = document.createElement('span');
+                span.textContent = "Team A";
+                li.appendChild(span);
+                li.appendChild(ul);
+                teamA.forEach(function(username) {
+                    var li2 = document.createElement('li');
+                    li2.textContent = username;
+                    ul.appendChild(li2);
+                });
+
+                var li = document.createElement('li');
+                li.className = "playerListTeamB";
+                els.playerList.appendChild(li);
+                var ul = document.createElement('ul');
+                var span = document.createElement('span');
+                span.textContent = "Team B";
+                li.appendChild(span);
+                li.appendChild(ul);
+                teamB.forEach(function(username) {
+                    var li2 = document.createElement('li');
+                    li2.textContent = username;
+                    ul.appendChild(li2);
+                });
+
+                var li = document.createElement('li');
+                li.className = "playerListAdmin";
+                els.playerList.appendChild(li);
+                var ul = document.createElement('ul');
+                var span = document.createElement('span');
+                span.textContent = "Admin";
+                li.appendChild(span);
+                li.appendChild(ul);
+                var li2 = document.createElement('li');
+                li2.textContent = admin;
+                ul.appendChild(li2);
+
+                var li = document.createElement('li');
+                li.className = "playerListSpectator";
+                els.playerList.appendChild(li);
+                var ul = document.createElement('ul');
+                var span = document.createElement('span');
+                span.textContent = "Spectators";
+                li.appendChild(span);
+                li.appendChild(ul);
+                spectators.forEach(function(username) {
+                    var li2 = document.createElement('li');
+                    li2.textContent = username;
+                    ul.appendChild(li2);
+                });
+
+                els.gameWindows.forEach(function(el) {
+                    console.log(el);
+                    console.log(selectedUsername, admin);
+                    if ((el.id === 'gameAdmin' && selectedUsername === admin) || (el.id === 'gameRoundWaiting' && selectedUsername !== admin))
+                        el.style.display = 'block';
+                    else
+                        el.style.display = 'none';
+                });
         }
     };
 
@@ -131,6 +231,8 @@ var connectSocket = function() {
             
             if (username !== '')
                 localStorage.vortumiguUsername = username;
+
+            selectedUsername = username;
 
             socket.send('setUsername\n' + username)
         };

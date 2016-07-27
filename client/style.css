@@ -25,7 +25,7 @@ body {
     color: #aaa;
 }
 
-#copyrightNotice, #playerHeadline, #playerList, h1, h2, ol {
+#copyrightNotice, #playerHeadline, #playerList, h1, h2, h3, ol {
     font-family: 'Montserrat', sans-serif;
 }
 
@@ -36,6 +36,22 @@ body {
     justify-content: space-between;
 }
 
+#main > :first-child {
+    margin-right: 32px;
+}
+
 #game > div {
     display: none;
+}
+
+#playerList > .playerListTeamA {
+    color: red;
+}
+
+#playerList > .playerListTeamB {
+    color: blue;
+}
+
+#playerList > .playerListSpectator {
+    color: #aaa;
 }

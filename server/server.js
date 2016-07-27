@@ -241,51 +241,25 @@ shell.registerCommand({
         shuffle(cards);
 
         // Assign players their roles
-        var guesser = false;
-        var explainer = false;
-        var controller = false;
+        var spectators = [];
         for (var username in clients) {
             var user = clients[username];
             user.status = PlayerStatus.SPECTATOR;
 
-            if (teamA.indexOf(username) > -1) {
+            if (teamA.indexOf(username) > -1)
                 user.type = PlayerType.TEAM_A;
-                user.ws.send('role teamA');
-
-                if (!guesser) {
-                    user.status = PlayerStatus.GUESSER;
-                    guesser = true;
-                    user.ws.send('status guesser');
-                }
-                else if (!explainer) {
-                    user.status = PlayerStatus.EXPLAINER;
-                    explainer = true;
-                    user.ws.send('status explainer');
-                }
-                else
-                    user.ws.send('status spectator');
-            }
-            else if (teamB.indexOf(username) > -1) {
+            else if (teamB.indexOf(username) > -1)
                 user.type = PlayerType.TEAM_B;
-                user.ws.send('role teamB');
-
-                if (!controller) {
-                    user.status = PlayerStatus.CONTROLLER;
-                    controller = true;
-                    user.ws.send('status controller');
-                }
-                else
-                    user.ws.send('status spectator');
-            }
-            else if (opt.admin === username) {
+            else if (opt.admin === username)
                 user.type = PlayerType.ADMIN;
-                user.ws.send('role admin');
-            }
             else {
                 user.type = PlayerType.SPECTATOR;
-                user.ws.send('role spectator');
+                spectators.push(username);
             }
         }
+
+        // Inform everyone that the game has started (awaiting the initiation of the first round by the admin)
+        sendTo('*', 'gameStart\n' + JSON.stringify(teamA) + '\n' + JSON.stringify(teamB) + '\n' + opt.admin + '\n' + JSON.stringify(spectators));
     }
 });
 
@@ -352,6 +326,7 @@ var currentCard = 0;
 var wss = new WebSocketServer({ port: WEBSOCKET_PORT });
 wss.on('connection', function(ws) {
     if (gameStatus !== GameStatus.WAITING) {
+        ws.send('alreadyStarted');
         ws.close();
         return;
     }
