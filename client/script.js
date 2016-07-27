@@ -19,6 +19,12 @@ var $ = function() {
     return document.querySelectorAll.apply(document, arguments);
 };
 NodeList.prototype.forEach = Array.prototype.forEach;
+String.prototype.lpad = function(padString, length) {
+    var str = this;
+    while (str.length < length)
+        str = padString + str;
+    return str;
+}
 
 var els = {
     playerList: $('#playerList')[0],
@@ -26,7 +32,21 @@ var els = {
     gameWindows: $('#game>*'),
     explainerUsername: $('.explainerUsername'),
     adminUsername: $('.adminUsername'),
-    nextRoundButton: $('#nextRoundButton')[0]
+    nextRoundButton: $('#nextRoundButton')[0],
+    showRules: $('#showRules')[0],
+    rules: $('#rules')[0],
+    clock: $('#clock')[0]
+};
+
+els.showRules.onclick = function() {
+    if (rules.style.display !== 'none') {
+        rules.style.display = 'none';
+        showRules.innerHTML = '/\\';
+    }
+    else {
+        rules.style.display = 'block';
+        showRules.innerHTML = '\\/';
+    }
 };
 
 if (location.protocol === 'https:')
@@ -59,6 +79,9 @@ var connectSocket = function() {
     var admin = null;
     var spectators = null;
     var selectedUsername = null;
+    var timerStartTimestamp = null;
+    var timerValue = null;
+    var clockLastValue = 0;
 
     socket.onmessage = function(e) {
         var msg = e.data;
@@ -179,6 +202,16 @@ var connectSocket = function() {
                 els.adminUsername.forEach(function(el) {
                     el.textContent = admin;
                 });
+
+                break;
+            case 'roundStart':
+                if (data.length !== 5)
+                    return;
+
+                timerValue = parseInt(data[1], 10);
+
+                timerStartTimestamp = moment().unix();
+                runTimer();
         }
     };
 
@@ -233,12 +266,24 @@ var connectSocket = function() {
     };
 
     socket.onclose = function() {
-        if (!connection)
-            location.reload();
+        //alert('Connection lost. Press okay to retry.'); // TODO: Uncomment
+        location.reload();
     };
 
     els.nextRoundButton.onclick = function() {
         socket.send('commenceRound');
+    };
+
+    var runTimer = function() {
+        var timestamp = moment().unix();
+        var value = Math.max(timerValue - (timestamp - timerStartTimestamp), 0);
+        if (clockLastValue !== value) {
+            els.clock.innerHTML = value.toString().lpad("0", 3);
+            clockLastValue = value;
+        }
+
+        if (value > 0)
+            requestAnimationFrame(runTimer);
     };
 };
 connectSocket();

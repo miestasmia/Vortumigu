@@ -27,8 +27,8 @@ along with Vortumigu.  If not, see <http://www.gnu.org/licenses/>.
         <div id="main">
             <div>
                 <div>
-                    <h2>Rules</h2>
-                    <ol>
+                    <h2>Rules <button id="showRules">\/</button></h2>
+                    <ol id ="rules">
                         <li>You must try to explain as many words as possible in limited time.</li>
                         <li>You cannot say the word or use any of the four banned words in your explanation.</li>
                         <li>
@@ -53,6 +53,7 @@ along with Vortumigu.  If not, see <http://www.gnu.org/licenses/>.
                             E.g. if you can't use the word “dark”, you cannot describe it as being “the opposite of light”.
                         </li>
                     </ol>
+                    <div id="clock">000</div>
                 </div>
                 <div id="game">
                     <div id="gameController">
@@ -79,7 +80,7 @@ along with Vortumigu.  If not, see <http://www.gnu.org/licenses/>.
                     </div>
                     <div id="gameSpectator">
                         <h2>You're a spectator</h2>
-                        <h3>Have fun and stay silent—you're not guessing or explaining</h3>
+                        <h3>Have fun and stay silent—you're not guessing, explaining or controlling</h3>
                     </div>
                     <div id="gameWaiting" style="display: block;">
                         <h2>Waiting for the game to start …</h2>
@@ -89,12 +90,13 @@ along with Vortumigu.  If not, see <http://www.gnu.org/licenses/>.
                     </div>
                 </div>
             </div>
-            <div id="players">
+            <div>
                 <span id="playerHeadline">List of players</span>
                 <ul id="playerList"></ul>
             </div>
         </div>
 
+        <script src="moment.js"></script>
         <script src="script.js"></script>
     </body>
 </html>

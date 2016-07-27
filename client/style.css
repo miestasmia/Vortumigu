@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with Vortumigu.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-@import 'https://fonts.googleapis.com/css?family=Montserrat';
+@import 'https://fonts.googleapis.com/css?family=Anonymous+Pro|Montserrat';
 
 body {
     margin: 50px;
@@ -54,4 +54,9 @@ body {
 
 #playerList > .playerListSpectator {
     color: #aaa;
+}
+
+#clock {
+    font-family: 'Anonymous Pro', monospace;
+    font-size: 65px;
 }

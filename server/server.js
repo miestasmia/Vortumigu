@@ -206,12 +206,12 @@ shell.registerCommand({
         try {
             opt.time = parseInt(opt.time, 10);
         } catch(e) {
-            console.log("Time must be an integer in the range ]0; 3600]");
+            console.log("Time must be an integer in the range [1; 999]");
             return;
         }
 
-        if (opt.time < 1 || opt.time > 3600 || opt.time !== Math.ceil(opt.time)) {
-            console.log("Time must be an integer in the range ]0; 3600]");
+        if (opt.time < 1 || opt.time > 999 || opt.time !== Math.ceil(opt.time)) {
+            console.log("Time must be an integer in the range [1; 999]");
             return;
         }
 
@@ -227,7 +227,7 @@ shell.registerCommand({
 
 
         // Set the game status
-        gameStatus = GameStatus.TEAM_A;
+        gameStatus = GameStatus.ROUND;
 
         // Prepare the game's cards
         fs.readFileSync(path.join(__dirname, 'words/' + opt.lang), 'utf8').split('\n').forEach(function(line) {
@@ -262,6 +262,8 @@ shell.registerCommand({
 
         // Inform everyone that the game has started (awaiting the initiation of the first round by the admin)
         sendTo('*', 'gameStart\n' + JSON.stringify(teamA) + '\n' + JSON.stringify(teamB) + '\n' + admin + '\n' + JSON.stringify(spectators));
+
+        roundTimeSeconds = opt.time;
     }
 });
 
@@ -306,8 +308,9 @@ var users = [];
 var clients = {};
 var GameStatus = {
     WAITING: 0,
-    TEAM_A: 1,
-    TEAM_B: 2
+    ROUND: 1,
+    TEAM_A: 2,
+    TEAM_B: 3
 };
 var PlayerType = {
     TEAM_A: 0,
@@ -328,9 +331,12 @@ var teamA = null;
 var teamB = null;
 var admin = null;
 var spectators = null;
-var teamALastExplainer = -1;
-var teamBLastExplainer = -1;
+var teamALastExplainer  = -1;
+var teamBLastExplainer  = -1;
+var teamALastController = -1;
+var teamBLastController = -1;
 var lastTeam = -1;
+var roundTimeSeconds = 0;
 
 var wss = new WebSocketServer({ port: WEBSOCKET_PORT });
 wss.on('connection', function(ws) {
@@ -393,6 +399,9 @@ wss.on('connection', function(ws) {
                     if (username !== admin)
                         return;
 
+                    if (gameStatus !== GameStatus.ROUND)
+                        return;
+
                     var explainer;
 
                     lastTeam++;
@@ -401,15 +410,30 @@ wss.on('connection', function(ws) {
                         if (teamALastExplainer > teamA.length - 1)
                             teamALastExplainer = 0;
                         var explainer = teamA[teamALastExplainer];
+
+                        teamBLastController++;
+                        if (teamBLastController > teamB.length - 1)
+                            teamBLastController = 0;
+                        var controller = teamB[teamBLastController];
                     }
                     else { // Team B
                         teamBLastExplainer++;
                         if (teamBLastExplainer > teamB.length - 1)
                             teamBLastExplainer = 0;
                         var explainer = teamB[teamBLastExplainer];
+
+                        teamALastController++;
+                        if (teamALastController > teamA.length - 1)
+                            teamALastController = 0;
+                        var controller = teamA[teamALastController];
                     }
 
-                    
+                    sendTo('*', 'roundStart\n' + roundTimeSeconds  + '\n' + lastTeam + '\n' + explainer + '\n' + controller);
+
+                    if (!lastTeam)
+                        gameStatus = GameStatus.TEAM_A;
+                    else
+                        gameStatus = GameStatus.TEAM_B;
             }
         }
     });
