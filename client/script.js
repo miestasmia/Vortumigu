@@ -23,7 +23,10 @@ NodeList.prototype.forEach = Array.prototype.forEach;
 var els = {
     playerList: $('#playerList')[0],
     game: $('#game')[0],
-    gameWindows: $('#game>*')
+    gameWindows: $('#game>*'),
+    explainerUsername: $('.explainerUsername'),
+    adminUsername: $('.adminUsername'),
+    nextRoundButton: $('#nextRoundButton')[0]
 };
 
 if (location.protocol === 'https:')
@@ -101,22 +104,6 @@ var connectSocket = function() {
                 location.reload();
 
                 break;
-            case 'status':
-                if (data.length !== 2)
-                    return;
-
-                els.game.childNodes.forEach(function(el) {
-                    if ((data[1] === 'controller' && el.id === 'gameController') ||
-                        (data[1] === 'explainer'  && el.id === 'gameExplainer')  ||
-                        (data[1] === 'admin'      && el.id === 'gameAdmin')      ||
-                        (data[1] === 'spectator'  && el.id === 'gameSpectator')  ||
-                        (data[1] === 'guesser'    && el.id === 'gameGuesser'))
-                        el.style.display = 'block';
-                    else
-                        el.style.display = 'auto';
-                });
-
-                break;
             case 'gameStart':
                 if (data.length !== 5)
                     return;
@@ -183,12 +170,14 @@ var connectSocket = function() {
                 });
 
                 els.gameWindows.forEach(function(el) {
-                    console.log(el);
-                    console.log(selectedUsername, admin);
                     if ((el.id === 'gameAdmin' && selectedUsername === admin) || (el.id === 'gameRoundWaiting' && selectedUsername !== admin))
                         el.style.display = 'block';
                     else
                         el.style.display = 'none';
+                });
+
+                els.adminUsername.forEach(function(el) {
+                    el.textContent = admin;
                 });
         }
     };
@@ -246,6 +235,10 @@ var connectSocket = function() {
     socket.onclose = function() {
         if (!connection)
             location.reload();
+    };
+
+    els.nextRoundButton.onclick = function() {
+        socket.send('commenceRound');
     };
 };
 connectSocket();

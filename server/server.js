@@ -154,8 +154,8 @@ shell.registerCommand({
         }
     },
     handler: function(cmd, opt) {
-        var teamA = opt.teamA.split('&');
-        var teamB = opt.teamB.split('&');
+        teamA = opt.teamA.split('&');
+        teamB = opt.teamB.split('&');
 
         for (var id in teamA) {
             var username = teamA[id];
@@ -241,7 +241,7 @@ shell.registerCommand({
         shuffle(cards);
 
         // Assign players their roles
-        var spectators = [];
+        spectators = [];
         for (var username in clients) {
             var user = clients[username];
             user.status = PlayerStatus.SPECTATOR;
@@ -258,8 +258,10 @@ shell.registerCommand({
             }
         }
 
+        admin = opt.admin;
+
         // Inform everyone that the game has started (awaiting the initiation of the first round by the admin)
-        sendTo('*', 'gameStart\n' + JSON.stringify(teamA) + '\n' + JSON.stringify(teamB) + '\n' + opt.admin + '\n' + JSON.stringify(spectators));
+        sendTo('*', 'gameStart\n' + JSON.stringify(teamA) + '\n' + JSON.stringify(teamB) + '\n' + admin + '\n' + JSON.stringify(spectators));
     }
 });
 
@@ -322,6 +324,13 @@ var PlayerStatus = {
 var gameStatus = GameStatus.WAITING;
 var cards = [];
 var currentCard = 0;
+var teamA = null;
+var teamB = null;
+var admin = null;
+var spectators = null;
+var teamALastExplainer = -1;
+var teamBLastExplainer = -1;
+var lastTeam = -1;
 
 var wss = new WebSocketServer({ port: WEBSOCKET_PORT });
 wss.on('connection', function(ws) {
@@ -380,7 +389,27 @@ wss.on('connection', function(ws) {
         }
         else if (signedIn) {
             switch(data[0]) {
+                case 'commenceRound':
+                    if (username !== admin)
+                        return;
 
+                    var explainer;
+
+                    lastTeam++;
+                    if (!lastTeam) { // Team A
+                        teamALastExplainer++;
+                        if (teamALastExplainer > teamA.length - 1)
+                            teamALastExplainer = 0;
+                        var explainer = teamA[teamALastExplainer];
+                    }
+                    else { // Team B
+                        teamBLastExplainer++;
+                        if (teamBLastExplainer > teamB.length - 1)
+                            teamBLastExplainer = 0;
+                        var explainer = teamB[teamBLastExplainer];
+                    }
+
+                    
             }
         }
     });
