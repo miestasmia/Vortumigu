@@ -189,7 +189,14 @@ shell.registerCommand({
             return;
         }
 
-        if (typeof opt.time !== "number" || opt.time < 1 || opt.time > 3600 || opt.time !== Math.ceil(opt.time)) {
+        try {
+            opt.time = parseInt(opt.time, 10);
+        } catch(e) {
+            console.log("Time must be an integer in the range ]0; 3600]");
+            return;
+        }
+
+        if (opt.time < 1 || opt.time > 3600 || opt.time !== Math.ceil(opt.time)) {
             console.log("Time must be an integer in the range ]0; 3600]");
             return;
         }
@@ -203,6 +210,35 @@ shell.registerCommand({
             console.log("The admin cannot be on a team");
             return;
         }
+
+        // Assign players their roles
+        var guesser = false;
+        var explainer = false;
+        for (var username in clients) {
+            var user = clients[username];
+            user.status = PlayerStatus.SPECTATOR;
+
+            if (teamA.indexOf(username) > -1) {
+                user.type = PlayerType.TEAM_A;
+
+                if (!guesser) {
+                    user.status = PlayerStatus.GUESSER;
+                    guesser = true;
+                }
+                else if (!explainer) {
+                    user.status = PlayerStatus.EXPLAINER;
+                    explainer = true;
+                }
+            }
+            else if (teamB.indexOf(username) > -1)
+                user.type = PlayerType.TEAM_B;
+            else if (opt.admin === username)
+                user.type = PlayerType.ADMIN;
+            else
+                user.type = PlayerType.SPECTATOR;
+        }
+
+        console.log(clients);
     }
 });
 
