@@ -61,3 +61,25 @@ body {
     font-size: 65px;
     margin-top: 24px;
 }
+
+.card {
+    background-color: #000;
+    display: inline-block;
+    padding: 32px;
+    color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    text-align: center;
+    
+    -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    border-radius: 8px;
+}
+
+.cardWord {
+    font-size: 32px;
+    margin-bottom: 24px;
+}
+
+.cardBannedWords > div:not(:last-child) {
+    padding-bottom: 8px;
+}

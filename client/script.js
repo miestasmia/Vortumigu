@@ -42,7 +42,9 @@ var els = {
     gameController: $('#gameController')[0],
     gameGuesser: $('#gameGuesser')[0],
     gameAdmin: $('#gameAdmin')[0],
-    gameSpectator: $('#gameSpectator')[0]
+    gameSpectator: $('#gameSpectator')[0],
+    cardWord: $('.cardWord'),
+    cardBannedWords: $('.cardBannedWords')
 };
 
 els.showRules.onclick = function() {
@@ -117,7 +119,7 @@ var connectSocket = function() {
 
                 for (var id in playerList.childNodes) {
                     var el = playerList.childNodes[id];
-                    if (el === undefined)
+                    if (el.nodeType !== Node.ELEMENT_NODE)
                         continue;
                     if (el.dataset.name === data[1]) {
                         el.remove();
@@ -271,6 +273,26 @@ var connectSocket = function() {
 
                 els.explainerUsername.forEach(function(el) {
                     el.textContent = data[3];
+                });
+
+                break;
+            case 'card':
+                if (data.length !== 2)
+                    return;
+
+                var card = JSON.parse(data[1]);
+
+                els.cardWord.forEach(function(el) {
+                    el.textContent = card.word;
+                });
+                els.cardBannedWords.forEach(function(el) {
+                    var i = 0;
+                    el.childNodes.forEach(function(el) {
+                        if (el.nodeType !== Node.ELEMENT_NODE)
+                            return;
+                        el.textContent = card.banned[i];
+                        i++;
+                    });
                 });
         }
     };

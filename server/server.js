@@ -440,7 +440,7 @@ wss.on('connection', function(ws) {
                     for (var otherUser in clients) {
                         var user = clients[otherUser];
                         if (user.status !== PlayerStatus.GUESSER)
-                            user.ws.send('card ' + JSON.stringify(cards[currentCard]));
+                            user.ws.send('card\n' + JSON.stringify(cards[currentCard]));
                     }
             }
         }
