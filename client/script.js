@@ -87,6 +87,9 @@ var connectSocket = function() {
             case 'kicked':
                 alert("You've been kicked from the game.");
                 location.reload();
+            case 'alreadyStarted':
+                alert("The game has already started.");
+                location.reload();
         }
     };
 

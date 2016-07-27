@@ -25,6 +25,20 @@ const WebSocketServer = require('ws').Server,
       fs              = require('fs'),
       path            = require('path');
 
+/**
+ * Shuffles array in place.
+ * @param {Array} a items The array containing the items.
+ */
+function shuffle(a) {
+    var j, x, i;
+    for (i = a.length; i; i--) {
+        j = Math.floor(Math.random() * i);
+        x = a[i - 1];
+        a[i - 1] = a[j];
+        a[j] = x;
+    }
+}
+
 
 
 const WEBSOCKET_PORT = 3000;
@@ -211,34 +225,67 @@ shell.registerCommand({
             return;
         }
 
+
+        // Set the game status
+        gameStatus = GameStatus.TEAM_A;
+
+        // Prepare the game's cards
+        fs.readFileSync(path.join(__dirname, 'words/' + opt.lang), 'utf8').split('\n').forEach(function(line) {
+            var data = line.split(',');
+            cards.push({
+                word: data[0],
+                type: data[1],
+                banned: data.slice(2)
+            });
+        });
+        shuffle(cards);
+
         // Assign players their roles
         var guesser = false;
         var explainer = false;
+        var controller = false;
         for (var username in clients) {
             var user = clients[username];
             user.status = PlayerStatus.SPECTATOR;
 
             if (teamA.indexOf(username) > -1) {
                 user.type = PlayerType.TEAM_A;
+                user.ws.send('role teamA');
 
                 if (!guesser) {
                     user.status = PlayerStatus.GUESSER;
                     guesser = true;
+                    user.ws.send('status guesser');
                 }
                 else if (!explainer) {
                     user.status = PlayerStatus.EXPLAINER;
                     explainer = true;
+                    user.ws.send('status explainer');
                 }
+                else
+                    user.ws.send('status spectator');
             }
-            else if (teamB.indexOf(username) > -1)
+            else if (teamB.indexOf(username) > -1) {
                 user.type = PlayerType.TEAM_B;
-            else if (opt.admin === username)
-                user.type = PlayerType.ADMIN;
-            else
-                user.type = PlayerType.SPECTATOR;
-        }
+                user.ws.send('role teamB');
 
-        console.log(clients);
+                if (!controller) {
+                    user.status = PlayerStatus.CONTROLLER;
+                    controller = true;
+                    user.ws.send('status controller');
+                }
+                else
+                    user.ws.send('status spectator');
+            }
+            else if (opt.admin === username) {
+                user.type = PlayerType.ADMIN;
+                user.ws.send('role admin');
+            }
+            else {
+                user.type = PlayerType.SPECTATOR;
+                user.ws.send('role spectator');
+            }
+        }
     }
 });
 
@@ -282,7 +329,9 @@ var shellLog = function(msg) {
 var users = [];
 var clients = {};
 var GameStatus = {
-    WAITING: 0
+    WAITING: 0,
+    TEAM_A: 1,
+    TEAM_B: 2
 };
 var PlayerType = {
     TEAM_A: 0,
@@ -293,9 +342,12 @@ var PlayerType = {
 var PlayerStatus = {
     GUESSER: 0,
     EXPLAINER: 1,
-    SPECTATOR: 2
+    CONTROLLER: 2,
+    SPECTATOR: 3
 };
 var gameStatus = GameStatus.WAITING;
+var cards = [];
+var currentCard = 0;
 
 var wss = new WebSocketServer({ port: WEBSOCKET_PORT });
 wss.on('connection', function(ws) {
@@ -315,6 +367,12 @@ wss.on('connection', function(ws) {
         var data = msg.split('\n', 2)
 
         if (!signedIn && data[0] === 'setUsername') {
+            if (gameStatus !== GameStatus.WAITING) {
+                ws.send('alreadyStarted');
+                ws.close();
+                return;
+            }
+
             if (data.length !== 2)
                 return;
 
@@ -353,11 +411,13 @@ wss.on('connection', function(ws) {
     });
 
     ws.on('close', function() {
-        delete clients[username];
         delete users[id];
-        sendTo('¨', 'playerLeft\n' + username);
 
-        shellLog(username + " left the game");
+        if (username) {
+            delete clients[username];
+            sendTo('¨', 'playerLeft\n' + username);
+            shellLog(username + " left the game");
+        }
     });
 });
 console.log("Starting Vortumigu Server on port " + WEBSOCKET_PORT + "\n\n" +
