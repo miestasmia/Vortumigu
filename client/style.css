@@ -40,7 +40,7 @@ body {
     margin-right: 32px;
 }
 
-#game > div {
+#game > div, #gameAdminWindows > div {
     display: none;
 }
 

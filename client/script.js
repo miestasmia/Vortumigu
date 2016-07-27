@@ -36,7 +36,13 @@ var els = {
     nextRoundButton: $('#nextRoundButton')[0],
     showRules: $('#showRules')[0],
     rules: $('#rules')[0],
-    clock: $('#clock')[0]
+    clock: $('#clock')[0],
+    gameAdminWindows: $('#gameAdminWindows>*'),
+    gameExplainer: $('#gameExplainer')[0],
+    gameController: $('#gameController')[0],
+    gameGuesser: $('#gameGuesser')[0],
+    gameAdmin: $('#gameAdmin')[0],
+    gameSpectator: $('#gameSpectator')[0]
 };
 
 els.showRules.onclick = function() {
@@ -77,6 +83,7 @@ var connectSocket = function() {
     var players = [];
     var teamA = null;
     var teamB = null;
+    var teams = null;
     var admin = null;
     var spectators = null;
     var selectedUsername = null;
@@ -135,6 +142,7 @@ var connectSocket = function() {
 
                 teamA = JSON.parse(data[1]);
                 teamB = JSON.parse(data[2]);
+                teams = [ teamA, teamB ];
                 admin = data[3];
                 spectators = JSON.parse(data[4]);
 
@@ -151,6 +159,7 @@ var connectSocket = function() {
                 teamA.forEach(function(username) {
                     var li2 = document.createElement('li');
                     li2.textContent = username;
+                    li2.dataset.name = username;
                     ul.appendChild(li2);
                 });
 
@@ -165,6 +174,7 @@ var connectSocket = function() {
                 teamB.forEach(function(username) {
                     var li2 = document.createElement('li');
                     li2.textContent = username;
+                    li2.dataset.name = username;
                     ul.appendChild(li2);
                 });
 
@@ -178,6 +188,7 @@ var connectSocket = function() {
                 li.appendChild(ul);
                 var li2 = document.createElement('li');
                 li2.textContent = admin;
+                li2.dataset.name = admin;
                 ul.appendChild(li2);
 
                 var li = document.createElement('li');
@@ -191,6 +202,7 @@ var connectSocket = function() {
                 spectators.forEach(function(username) {
                     var li2 = document.createElement('li');
                     li2.textContent = username;
+                    li2.dataset.name = username;
                     ul.appendChild(li2);
                 });
 
@@ -215,6 +227,8 @@ var connectSocket = function() {
                 timerStartTimestamp = moment().unix();
                 runTimer();
 
+                currentTeam = parseInt(data[2], 10);
+
                 if (data[2] === "0") { // Team A
                     currentTeam = 0;
                     els.teamName.forEach(function(el) {
@@ -228,7 +242,31 @@ var connectSocket = function() {
                     });
                 }
 
-                
+                els.gameAdminWindows.forEach(function(el) {
+                    if (el.id === 'gameAdminWindowRound')
+                        el.style.display = 'block';
+                    else
+                        el.style.display = 'none';
+                });
+
+                els.gameWindows.forEach(function(el) {
+                    el.style.display = 'none';
+                });
+
+                if (data[3] === selectedUsername)
+                    els.gameExplainer.style.display = 'block';
+                else if (data[4] === selectedUsername)
+                    els.gameController.style.display = 'block';
+                else if (teams[currentTeam].indexOf(selectedUsername) > -1)
+                    els.gameGuesser.style.display = 'block';
+                else if (admin === selectedUsername)
+                    els.gameAdmin.style.display = 'block';
+                else
+                    els.gameSpectator.style.display = 'block';
+
+                els.explainerUsername.forEach(function(el) {
+                    el.textContent = data[3];
+                });
         }
     };
 
