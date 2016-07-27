@@ -72,15 +72,19 @@ along with Vortumigu.  If not, see <http://www.gnu.org/licenses/>.
                         <h2>You're the admin!</h2>
                         <h3>You're in control of the game</h3>
                         <div id="gameAdminWindows">
-                            <div id="nextRound">
+                            <div id="gameAdminWindowNextRound">
                                 <h4>The next round is ready to start!</h4>
                                 <button id="nextRoundButton">Start round</button>
+                            </div>
+                            <div id="gameAdminWindowRound">
+                                <h4><span class="explainerUsername"></span> is trying to explain their word to the rest of Team <span class="teamName"></span></h4>
                             </div>
                         </div>
                     </div>
                     <div id="gameSpectator">
                         <h2>You're a spectator</h2>
                         <h3>Have fun and stay silent—you're not guessing, explaining or controlling</h3>
+                        <h4><span class="explainerUsername"></span> is trying to explain their word to the rest of Team <span class="teamName"></span></h4>
                     </div>
                     <div id="gameWaiting" style="display: block;">
                         <h2>Waiting for the game to start …</h2>

@@ -32,6 +32,7 @@ var els = {
     gameWindows: $('#game>*'),
     explainerUsername: $('.explainerUsername'),
     adminUsername: $('.adminUsername'),
+    teamName: $('.teamName'),
     nextRoundButton: $('#nextRoundButton')[0],
     showRules: $('#showRules')[0],
     rules: $('#rules')[0],
@@ -82,6 +83,7 @@ var connectSocket = function() {
     var timerStartTimestamp = null;
     var timerValue = null;
     var clockLastValue = 0;
+    var currentTeam = null;
 
     socket.onmessage = function(e) {
         var msg = e.data;
@@ -212,6 +214,21 @@ var connectSocket = function() {
 
                 timerStartTimestamp = moment().unix();
                 runTimer();
+
+                if (data[2] === "0") { // Team A
+                    currentTeam = 0;
+                    els.teamName.forEach(function(el) {
+                        el.innerHTML = "A";
+                    });
+                }
+                else { // Team B
+                    currentTeam = 1;
+                    els.teamName.forEach(function(el) {
+                        el.innerHTML = "B";
+                    });
+                }
+
+                
         }
     };
 
@@ -221,15 +238,15 @@ var connectSocket = function() {
         var selectUsername = function(type) {
             if (type === 0) {
                 if (localStorage.vortumiguUsername === undefined)
-                    var username = prompt('Select a username of 2–16 characters:');
+                    var username = prompt('Select a username of 2–16 alphanumeric characters:');
                 else {
-                    var username = prompt("You're currently signed in as " + localStorage.vortumiguUsername + ". You can select a new alphanumeric username of 2–16 characters or leave the field empty to reuse the username:")
+                    var username = prompt("You're currently signed in as " + localStorage.vortumiguUsername + ". You can select a new username of 2–16 alphanumeric characters or leave the field empty to reuse the username:")
                 }
             }
             else if (type === 1)
-                var username = prompt('Username must be alphanumeric and 2–16 characters. Select a username:');
+                var username = prompt('Username must be 2–16 alphanumeric characters. Select a username:');
             else if (type === 2)
-                var username = prompt('That username is already taken. Select an alphanumeric username of 2—16 characters:');
+                var username = prompt('That username is already taken. Select a username of 2—16 alphanumeric characters:');
 
             if (username === null) {
                 if (localStorage.vortumiguUsername === undefined)

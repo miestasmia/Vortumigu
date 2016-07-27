@@ -59,4 +59,5 @@ body {
 #clock {
     font-family: 'Anonymous Pro', monospace;
     font-size: 65px;
+    margin-top: 24px;
 }
