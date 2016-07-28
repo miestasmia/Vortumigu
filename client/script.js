@@ -45,7 +45,10 @@ var els = {
     gameSpectator: $('#gameSpectator')[0],
     cardWord: $('.cardWord'),
     cardBannedWords: $('.cardBannedWords'),
-    explainerSkipCardButton: $('#explainerSkipCardButton')[0]
+    explainerSkipCardButton: $('#explainerSkipCardButton')[0],
+    adminSkipCardButton: $('#adminSkipCardButton')[0],
+    adminAwardPointButton: $('#adminAwardPointButton')[0],
+    controllerAwardPointButton: $('#controllerAwardPointButton')[0]
 };
 
 els.showRules.onclick = function() {
@@ -163,13 +166,10 @@ var connectSocket = function() {
                 var span = document.createElement('span');
                 span.textContent = "Team A—";
                 var span2 = document.createElement('span');
-                span2.textContent = "0";
+                span2.textContent = "0 points";
                 span2.id = "teamAPoints";
-                var span3 = document.createElement('span');
-                span3.textContent = " points";
                 li.appendChild(span);
                 li.appendChild(span2);
-                li.appendChild(span3);
                 li.appendChild(ul);
                 teamA.forEach(function(username) {
                     var li2 = document.createElement('li');
@@ -185,13 +185,10 @@ var connectSocket = function() {
                 var span = document.createElement('span');
                 span.textContent = "Team B—";
                 var span2 = document.createElement('span');
-                span2.textContent = "0";
+                span2.textContent = "0 points";
                 span2.id = "teamBPoints";
-                var span3 = document.createElement('span');
-                span3.textContent = " points";
                 li.appendChild(span);
                 li.appendChild(span2);
-                li.appendChild(span3);
                 li.appendChild(ul);
                 teamB.forEach(function(username) {
                     var li2 = document.createElement('li');
@@ -332,6 +329,15 @@ var connectSocket = function() {
                     return;
 
                 notie.alert('info', data[1], 4);
+
+                break;
+            case 'guessed':
+                if (data.length !== 4)
+                    return;
+
+                notie.alert('info', 'The word was guessed! The word was “' + data[1] + '”.', 4);
+
+                setPoints(data[2], data[3]);
         }
     };
 
@@ -405,8 +411,27 @@ var connectSocket = function() {
             requestAnimationFrame(runTimer);
     };
 
-    els.explainerSkipCardButton.onclick = function() {
+    els.explainerSkipCardButton.onclick = els.adminSkipCardButton.onclick = function() {
         socket.send('skipCard');
+    };
+
+    els.adminAwardPointButton.onclick = els.controllerAwardPointButton.onclick = function() {
+        socket.send('awardPoint');
+    };
+
+    var setPoints = function(a, b) {
+        if (a == "1")
+            a += " point";
+        else
+            a += " points";
+
+        if (b == "1")
+            b += " point";
+        else
+            b += " points";
+
+        $('#teamAPoints')[0].textContent = a;
+        $('#teamBPoints')[0].textContent = b;
     };
 };
 connectSocket();

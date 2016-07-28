@@ -360,6 +360,7 @@ var roundTimeSeconds = 0;
 var roundTimestamp = 0;
 var explainer = null;
 var controller = null;
+var points = [ 0, 0 ];
 
 var wss = new WebSocketServer({ port: WEBSOCKET_PORT });
 wss.on('connection', function(ws) {
@@ -425,7 +426,7 @@ wss.on('connection', function(ws) {
                     if (gameStatus !== GameStatus.ROUND)
                         return;
 
-                    lastTeam = !lastTeam;
+                    lastTeam = +(!lastTeam);
                     if (!lastTeam) { // Team A
                         teamALastExplainer++;
                         if (teamALastExplainer > teamA.length - 1)
@@ -472,7 +473,24 @@ wss.on('connection', function(ws) {
                     if (username !== admin && username !== explainer)
                         return;
 
+                    if (gameStatus !== GameStatus.TEAM_A && gameStatus !== GameStatus.TEAM_B)
+                        return;
+
                     nextCard(username);
+
+                    break;
+                case 'awardPoint':
+                    if (username !== admin && username !== controller)
+                        return;
+
+                    if (gameStatus !== GameStatus.TEAM_A && gameStatus !== GameStatus.TEAM_B)
+                        return;
+
+                    points[lastTeam]++;
+
+                    sendTo('*', 'guessed\n' + cards[currentCard].word + '\n' + points[0] + '\n' + points[1]);
+
+                    nextCard();
             }
         }
     });

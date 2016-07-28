@@ -60,6 +60,9 @@ along with Vortumigu.  If not, see <http://www.gnu.org/licenses/>.
                     <div id="gameController">
                         <h2>You're the controller!</h2>
                         <h3>Make sure that <span class="explainerUsername"></span> doesn't use any of the banned words in their explanation</h3>
+                        <div class="controlPanel">
+                            <button id="controllerAwardPointButton">Award point</button>
+                        </div>
                         <div class="card">
                             <div class="cardWord"></div>
                             <div class="cardBannedWords">
@@ -73,7 +76,7 @@ along with Vortumigu.  If not, see <http://www.gnu.org/licenses/>.
                     <div id="gameExplainer">
                         <h2>You're the explainer!</h2>
                         <h3>Try to explain as many words as possible as quickly as possible to your team</h3>
-                        <div id="explainerControls">
+                        <div class="controlPanel">
                             <button id="explainerSkipCardButton">Skip card</button>
                         </div>
                         <div class="card">
@@ -99,6 +102,10 @@ along with Vortumigu.  If not, see <http://www.gnu.org/licenses/>.
                             </div>
                             <div id="gameAdminWindowRound">
                                 <h3><span class="explainerUsername"></span> is trying to explain their word to the rest of Team <span class="teamName"></span></h3>
+                                <div class="controlPanel">
+                                    <button id="adminSkipCardButton">Skip card</button>
+                                    <button id="adminAwardPointButton">Award point</button>
+                                </div>
                                 <div class="card">
                                     <div class="cardWord"></div>
                                     <div class="cardBannedWords">
