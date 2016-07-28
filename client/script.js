@@ -44,7 +44,8 @@ var els = {
     gameAdmin: $('#gameAdmin')[0],
     gameSpectator: $('#gameSpectator')[0],
     cardWord: $('.cardWord'),
-    cardBannedWords: $('.cardBannedWords')
+    cardBannedWords: $('.cardBannedWords'),
+    explainerSkipCardButton: $('#explainerSkipCardButton')[0]
 };
 
 els.showRules.onclick = function() {
@@ -160,8 +161,15 @@ var connectSocket = function() {
                 els.playerList.appendChild(li);
                 var ul = document.createElement('ul');
                 var span = document.createElement('span');
-                span.textContent = "Team A";
+                span.textContent = "Team A—";
+                var span2 = document.createElement('span');
+                span2.textContent = "0";
+                span2.id = "teamAPoints";
+                var span3 = document.createElement('span');
+                span3.textContent = " points";
                 li.appendChild(span);
+                li.appendChild(span2);
+                li.appendChild(span3);
                 li.appendChild(ul);
                 teamA.forEach(function(username) {
                     var li2 = document.createElement('li');
@@ -175,8 +183,15 @@ var connectSocket = function() {
                 els.playerList.appendChild(li);
                 var ul = document.createElement('ul');
                 var span = document.createElement('span');
-                span.textContent = "Team B";
+                span.textContent = "Team B—";
+                var span2 = document.createElement('span');
+                span2.textContent = "0";
+                span2.id = "teamBPoints";
+                var span3 = document.createElement('span');
+                span3.textContent = " points";
                 li.appendChild(span);
+                li.appendChild(span2);
+                li.appendChild(span3);
                 li.appendChild(ul);
                 teamB.forEach(function(username) {
                     var li2 = document.createElement('li');
@@ -294,6 +309,29 @@ var connectSocket = function() {
                         i++;
                     });
                 });
+
+                break;
+            case 'roundEnd':
+                els.gameWindows.forEach(function(el) {
+                    if ((el.id === 'gameAdmin' && selectedUsername === admin) || (el.id === 'gameRoundWaiting' && selectedUsername !== admin))
+                        el.style.display = 'block';
+                    else
+                        el.style.display = 'none';
+                });
+
+                els.gameAdminWindows.forEach(function(el) {
+                    if (el.id === 'gameAdminWindowNextRound')
+                        el.style.display = 'block';
+                    else
+                        el.style.display = 'none';
+                });
+
+                break;
+            case 'showMessage':
+                if (data.length !== 2)
+                    return;
+
+                notie.alert('info', data[1], 4);
         }
     };
 
@@ -337,8 +375,7 @@ var connectSocket = function() {
                 localStorage.vortumiguUsername = username;
 
             selectedUsername = username;
-
-            socket.send('setUsername\n' + username)
+            socket.send('setUsername\n' + username);
         };
         selectUsername(0);
     };
@@ -366,6 +403,10 @@ var connectSocket = function() {
 
         if (value > 0)
             requestAnimationFrame(runTimer);
+    };
+
+    els.explainerSkipCardButton.onclick = function() {
+        socket.send('skipCard');
     };
 };
 connectSocket();

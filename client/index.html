@@ -20,6 +20,7 @@ along with Vortumigu.  If not, see <http://www.gnu.org/licenses/>.
         <title>Vortumigu</title>
         <meta charset="utf-8">
         <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="notie.css">
     </head>
     <body>
         <span id="copyrightNotice">&copy; Mia Nordentoft 2016. GPLv3<br/>This site uses cookies. If you do not consent to this, please close the tab.</span>
@@ -72,6 +73,9 @@ along with Vortumigu.  If not, see <http://www.gnu.org/licenses/>.
                     <div id="gameExplainer">
                         <h2>You're the explainer!</h2>
                         <h3>Try to explain as many words as possible as quickly as possible to your team</h3>
+                        <div id="explainerControls">
+                            <button id="explainerSkipCardButton">Skip card</button>
+                        </div>
                         <div class="card">
                             <div class="cardWord"></div>
                             <div class="cardBannedWords">
@@ -130,12 +134,13 @@ along with Vortumigu.  If not, see <http://www.gnu.org/licenses/>.
                 </div>
             </div>
             <div>
-                <span id="playerHeadline">List of players</span>
+                <span id="playerHeadline">Players</span>
                 <ul id="playerList"></ul>
             </div>
         </div>
 
         <script src="moment.js"></script>
+        <script src="notie.min.js"></script>
         <script src="script.js"></script>
     </body>
 </html>

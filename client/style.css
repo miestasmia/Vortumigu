@@ -25,7 +25,7 @@ body {
     color: #aaa;
 }
 
-#copyrightNotice, #playerHeadline, #playerList, h1, h2, h3, h4, ol {
+#copyrightNotice, #playerHeadline, #playerList, #notie-alert-text, h1, h2, h3, h4, ol {
     font-family: 'Montserrat', sans-serif;
 }
 
@@ -82,4 +82,8 @@ body {
 
 .cardBannedWords > div:not(:last-child) {
     padding-bottom: 8px;
+}
+
+#explainerControls {
+    margin-bottom: 16px;
 }

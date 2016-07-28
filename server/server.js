@@ -23,7 +23,8 @@ const WebSocketServer = require('ws').Server,
       moment          = require('moment'),
       geoip           = require('geoip-lite'),
       fs              = require('fs'),
-      path            = require('path');
+      path            = require('path'),
+      timers          = require('timers');
 
 /**
  * Shuffles array in place.
@@ -298,6 +299,25 @@ var sendTo = function(recipients, message) {
     else
         throw new Error('Unknown recipient list '  + typeof recipients + ' ' + recipients);
 };
+var nextCard = function(username) {
+    currentCard++; // TODO: Handle running out of cards
+    for (var otherUser in clients) {
+        var user = clients[otherUser];
+        if (user.status !== PlayerStatus.GUESSER)
+            user.ws.send('card\n' + JSON.stringify(cards[currentCard]));
+
+        if (username !== undefined)
+            user.ws.send('showMessage\n' + username + ' skipped the current card. The word was “' + cards[currentCard - 1].word + "”.");
+    }
+};
+var timeUp = function() {
+    gameStatus = GameStatus.ROUND;
+
+    for (var username in clients)
+        clients[username].status = PlayerStatus.SPECTATOR;
+
+    sendTo('*', 'roundEnd');
+};
 var shellLog = function(msg) {
     process.stdout.cursorTo(0);
     process.stdout.clearLine();
@@ -337,6 +357,9 @@ var teamALastController = -1;
 var teamBLastController = -1;
 var lastTeam = -1;
 var roundTimeSeconds = 0;
+var roundTimestamp = 0;
+var explainer = null;
+var controller = null;
 
 var wss = new WebSocketServer({ port: WEBSOCKET_PORT });
 wss.on('connection', function(ws) {
@@ -396,37 +419,34 @@ wss.on('connection', function(ws) {
         else if (signedIn) {
             switch(data[0]) {
                 case 'commenceRound':
-                    console.log(username, admin); // WHY THE FUCK IS USERNAME UNDEFINED
                     if (username !== admin)
                         return;
 
                     if (gameStatus !== GameStatus.ROUND)
                         return;
 
-                    var explainer;
-
-                    lastTeam++;
+                    lastTeam = !lastTeam;
                     if (!lastTeam) { // Team A
                         teamALastExplainer++;
                         if (teamALastExplainer > teamA.length - 1)
                             teamALastExplainer = 0;
-                        var explainer = teamA[teamALastExplainer];
+                        explainer = teamA[teamALastExplainer];
 
                         teamBLastController++;
                         if (teamBLastController > teamB.length - 1)
                             teamBLastController = 0;
-                        var controller = teamB[teamBLastController];
+                        controller = teamB[teamBLastController];
                     }
                     else { // Team B
                         teamBLastExplainer++;
                         if (teamBLastExplainer > teamB.length - 1)
                             teamBLastExplainer = 0;
-                        var explainer = teamB[teamBLastExplainer];
+                        explainer = teamB[teamBLastExplainer];
 
                         teamALastController++;
                         if (teamALastController > teamA.length - 1)
                             teamALastController = 0;
-                        var controller = teamA[teamALastController];
+                        controller = teamA[teamALastController];
                     }
 
                     sendTo('*', 'roundStart\n' + roundTimeSeconds  + '\n' + lastTeam + '\n' + explainer + '\n' + controller);
@@ -436,12 +456,23 @@ wss.on('connection', function(ws) {
                     else
                         gameStatus = GameStatus.TEAM_B;
 
-                    currentCard++; // TODO: Handle running out of cards
-                    for (var otherUser in clients) {
-                        var user = clients[otherUser];
-                        if (user.status !== PlayerStatus.GUESSER)
-                            user.ws.send('card\n' + JSON.stringify(cards[currentCard]));
-                    }
+                    nextCard();
+
+                    roundTimestamp = moment().unix();
+                    var callback = function() {
+                        if (moment().unix() - roundTimestamp >= roundTimeSeconds)
+                            timeUp();
+                        else
+                            timers.setImmediate(callback);
+                    };
+                    timers.setImmediate(callback);
+
+                    break;
+                case 'skipCard':
+                    if (username !== admin && username !== explainer)
+                        return;
+
+                    nextCard(username);
             }
         }
     });
